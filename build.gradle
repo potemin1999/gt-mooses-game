@@ -1,0 +1,181 @@
+import java.lang.reflect.Constructor
+import java.util.function.Supplier
+import java.util.stream.Stream
+
+plugins {
+    id 'java'
+}
+
+group 'org.ilya'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.13
+targetCompatibility = 1.13
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+sourceSets {
+    external {
+        java {
+            srcDir "src/external"
+        }
+    }
+    main {
+        java {
+            srcDir "src/main"
+            compileClasspath += external.compileClasspath + external.output
+        }
+    }
+    generated {
+        java {
+            srcDir "src/generated"
+            compileClasspath += external.compileClasspath + external.output
+        }
+    }
+    obfuscation {
+        java {
+            srcDir "src/obfuscation"
+            compileClasspath += external.compileClasspath + external.output
+        }
+    }
+    obfgenerated {
+        java {
+            srcDir "src/obfgenerated"
+            compileClasspath += external.compileClasspath + external.output
+        }
+    }
+    obftest {
+        java {
+            srcDir "src/obftest"
+            compileClasspath += external.compileClasspath + external.output
+            compileClasspath += obfgenerated.compileClasspath + obfgenerated.output
+            runtimeClasspath += external.runtimeClasspath + external.output
+            runtimeClasspath += obfgenerated.runtimeClasspath + obfgenerated.output
+        }
+    }
+    test {
+        java {
+            srcDir "src/test"
+            compileClasspath += generated.compileClasspath + generated.output
+            compileClasspath += external.compileClasspath + external.output
+            runtimeClasspath += generated.runtimeClasspath + generated.output
+            runtimeClasspath += external.runtimeClasspath + external.output
+        }
+    }
+}
+
+sourceSets.all { set ->
+    def jarTask = task("${set.name}Jar", type: Jar) {
+        archiveBaseName = "mooses-$set.name"
+        from set.output
+    }
+    artifacts {
+        archives jarTask
+    }
+}
+
+jar {
+    version = project.version
+    from sourceSets.generated.output
+    manifest {
+        attributes 'Main-Class': 'ssd.labs.calculator.Main'
+    }
+}
+
+configurations {
+    obftestCompile.extendsFrom testCompile
+    obftestRuntime.extendsFrom testRuntime
+}
+
+task obftest(type: Test, description: "Runs test on obfuscated generated sources", group:"Verification") {
+    testClassesDirs = sourceSets.obftest.output.classesDirs
+    classpath = sourceSets.obftest.runtimeClasspath
+}
+
+task mergeSources {
+    doLast {
+        String origin = "https://github.com/potemin1999/gt-mooses-game"
+        String outputLocation = "src/generated/java/com/company/IlyaPoteminCode.java"
+        File[] sourceFiles = new File("src/main/java").listFiles()
+        File outputFile = new File(outputLocation)
+        outputFile.createNewFile()
+        FileOutputStream outputStream = new FileOutputStream(outputFile)
+        outputStream.write("/* MERGED FROM MULTIPLE SOURCE FILES */\n".getBytes())
+        ByteArrayOutputStream bufferedOutputStream = new ByteArrayOutputStream();
+        Set<String> importsSet = new HashSet<>()
+        Stream.of(sourceFiles)
+                .filter { file -> file.getName().endsWith(".java") }
+                .forEach { file ->
+                    Scanner srcScanner = new Scanner(new FileInputStream(file));
+                    boolean isFirstLine = true
+                    while (srcScanner.hasNextLine()) {
+                        String srcLine = srcScanner.nextLine()
+                        if (srcLine.startsWith("import ") && srcLine.endsWith(";")) {
+                            importsSet.add(srcLine + "\n");
+                        } else {
+                            if (isFirstLine) {
+                                bufferedOutputStream.write(("\n/* FROM "+ origin+ "/src/main/java/" + file.getName() + " */\n").getBytes())
+                                isFirstLine = false
+                            }
+                            //if (srcLine != "") {
+                                bufferedOutputStream.write((srcLine + "\n").getBytes())
+                            //}
+                        }
+                    }
+                    srcScanner.close()
+                    println "File " + file.getName() + " will be merged to " + outputLocation
+                }
+        outputStream.write("package com.company;".getBytes())
+        outputStream.write("\n/* SUMMARIZED IMPORTS */\n".getBytes())
+        importsSet.stream().sorted().forEach { importValue ->
+            outputStream.write(importValue.getBytes())
+        }
+        outputStream.write("\n/* CODE */\n".getBytes())
+        bufferedOutputStream.writeTo(outputStream)
+        outputStream.close()
+    }
+}
+
+task obfuscateSourcesIntoInterface {
+    doLast {
+        ClassLoader classLoader = new ClassLoader() {
+            public Supplier<String> loadMinifier() {
+                byte[] classBytes = new FileInputStream(new File("build/classes/java/obfuscation/build/Minifier.class")).readAllBytes()
+                Class<?> minifierClass = defineClass("build.Minifier", classBytes, 0, classBytes.length)
+                Constructor<?> minifierConstructor = minifierClass.getConstructor(String[].class)
+                String[] arg1 = new String[0]
+                //arg1[0] = "IlyaPoteminCode.class"
+                Object[] args = new Object[1]
+                args[0] = arg1
+                Object result = minifierConstructor.newInstance(args)
+                return (Supplier<String>) result
+            }
+        }
+        try {
+            Supplier<String> minifier = classLoader.loadMinifier();
+            new FileOutputStream(new File("src/obfgenerated/java/IlyaPoteminCodeMinified.java")).write(minifier.get().getBytes())
+        } catch (Throwable t) {
+            t.printStackTrace()
+        }
+    }
+}
+
+obfuscateSourcesIntoInterface.dependsOn compileJava
+obfuscateSourcesIntoInterface.dependsOn compileObfuscationJava
+compileObfgeneratedJava.dependsOn obfuscateSourcesIntoInterface
+compileObftestJava.dependsOn compileObfgeneratedJava
+
+task moveGeneratedToGenerated(type: Copy) {
+    from 'src/generated/java/IlyaPoteminCode.java'
+    into 'build'
+}
+
+generatedJar.dependsOn moveGeneratedToGenerated
+compileGeneratedJava.dependsOn mergeSources
+compileGeneratedJava.dependsOn obfuscateSourcesIntoInterface
