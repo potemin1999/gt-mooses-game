@@ -1,6 +1,6 @@
 class IlyaPoteminLogger {
 
-    public static final boolean IS_LOGGING_ENABLED = false;
+    public static boolean IS_LOGGING_ENABLED = false;
 
     public static IlyaPoteminLogger getLogger(String name) {
         return new IlyaPoteminLogger(name);

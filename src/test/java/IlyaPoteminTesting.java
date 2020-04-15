@@ -6,6 +6,7 @@ public class IlyaPoteminTesting {
      * Actually, this was JUnit test, but was no guaranteed compatibility with the testing system
      */
     public void tournament1() {
+        IlyaPoteminLogger.IS_LOGGING_ENABLED = true;
         Player player1 = new IlyaPoteminCode();
         Player player2 = new IlyaPoteminCode();
         int player1move = 0;
