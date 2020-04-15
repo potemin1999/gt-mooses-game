@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 /* CODE */
 
-/* FROM https://github.com/potemin1999/gt-mooses-game/src/main/java/IlyaPoteminCode.java */
+/* FROM https://github.com/potemin1999/gt-mooses-game/blob/master/src/main/java/IlyaPoteminCode.java */
 /**
  * Player implementation
  * Uses all available information given to method  int move(int,int,int,int)
@@ -65,7 +65,7 @@ public class IlyaPoteminCode implements com.company.Player {
     }
 }
 
-/* FROM https://github.com/potemin1999/gt-mooses-game/src/main/java/IlyaPoteminField.java */
+/* FROM https://github.com/potemin1999/gt-mooses-game/blob/master/src/main/java/IlyaPoteminField.java */
 
 /**
  * Field represents territorial region
@@ -82,7 +82,7 @@ enum IlyaPoteminField {
         this.value = value;
     }
 
-    public int getValue(){
+    public int getValue() {
         return value;
     }
 
@@ -154,7 +154,7 @@ class IlyaPoteminFieldState {
     }
 }
 
-/* FROM https://github.com/potemin1999/gt-mooses-game/src/main/java/IlyaPoteminHistory.java */
+/* FROM https://github.com/potemin1999/gt-mooses-game/blob/master/src/main/java/IlyaPoteminHistory.java */
 
 /**
  * Round actions holds both players actions for round,
@@ -221,7 +221,7 @@ class IlyaPoteminArrayHistory implements IlyaPoteminHistory {
     }
 }
 
-/* FROM https://github.com/potemin1999/gt-mooses-game/src/main/java/IlyaPoteminMetric.java */
+/* FROM https://github.com/potemin1999/gt-mooses-game/blob/master/src/main/java/IlyaPoteminMetric.java */
 
 /**
  * Metric/Stat is a value computed based on current game state
@@ -323,7 +323,7 @@ class IlyaPoteminMetricFactory {
 }
 
 
-/* FROM https://github.com/potemin1999/gt-mooses-game/src/main/java/IlyaPoteminStrategy.java */
+/* FROM https://github.com/potemin1999/gt-mooses-game/blob/master/src/main/java/IlyaPoteminStrategy.java */
 /**
  * Strategy is a player strategy
  * It expected to be created at each new round/player swap
@@ -403,10 +403,10 @@ abstract class IlyaPoteminAbstractStrategy implements IlyaPoteminStrategy {
 }
 
 
-/* FROM https://github.com/potemin1999/gt-mooses-game/src/main/java/Log.java */
+/* FROM https://github.com/potemin1999/gt-mooses-game/blob/master/src/main/java/Log.java */
 class IlyaPoteminLogger {
 
-    public static final boolean IS_LOGGING_ENABLED = true;
+    public static final boolean IS_LOGGING_ENABLED = false;
 
     public static IlyaPoteminLogger getLogger(String name) {
         return new IlyaPoteminLogger(name);
@@ -419,11 +419,13 @@ class IlyaPoteminLogger {
     }
 
     public void info(String msg) {
-        System.out.printf("[%20.20s] %s\n", this.name, msg);
+        if (IS_LOGGING_ENABLED) {
+            System.out.printf("[%20.20s] %s\n", this.name, msg);
+        }
     }
 }
 
-/* FROM https://github.com/potemin1999/gt-mooses-game/src/main/java/Metrics.java */
+/* FROM https://github.com/potemin1999/gt-mooses-game/blob/master/src/main/java/Metrics.java */
 
 class IlyaPoteminPayoffSumMetric extends IlyaPoteminAbstractMetric<Double> {
     public static final String NAME = "payoff_sum_metric";
@@ -510,7 +512,7 @@ class IlyaPoteminMostOpponentSelectedFieldMetric extends IlyaPoteminAbstractMetr
     }
 }
 
-/* FROM https://github.com/potemin1999/gt-mooses-game/src/main/java/Simulation.java */
+/* FROM https://github.com/potemin1999/gt-mooses-game/blob/master/src/main/java/Simulation.java */
 
 /**
  * GameStateSimulation provides simulated game state based on previous player and opponent actions
@@ -582,7 +584,7 @@ class IlyaPoteminGameStateSimulationImpl implements IlyaPoteminGameStateSimulati
     }
 }
 
-/* FROM https://github.com/potemin1999/gt-mooses-game/src/main/java/Strategies.java */
+/* FROM https://github.com/potemin1999/gt-mooses-game/blob/master/src/main/java/Strategies.java */
 
 /**
  * Default base strategy

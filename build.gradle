@@ -120,7 +120,7 @@ task mergeSources {
                             importsSet.add(srcLine + "\n");
                         } else {
                             if (isFirstLine) {
-                                bufferedOutputStream.write(("\n/* FROM "+ origin+ "/src/main/java/" + file.getName() + " */\n").getBytes())
+                                bufferedOutputStream.write(("\n/* FROM "+ origin+ "/blob/master/src/main/java/" + file.getName() + " */\n").getBytes())
                                 isFirstLine = false
                             }
                             //if (srcLine != "") {
